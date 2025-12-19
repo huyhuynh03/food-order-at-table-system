@@ -2828,6 +2828,69 @@ ${translations[currentLang].chatbot.total}: [total price]đ`;
                 navigator.serviceWorker.controller.postMessage({ action: 'clearImageCache' });
             }
         }
+
+        /* ======================= DOUBLE-CLICK/TAP TO CLOSE PANELS ======================= */
+        // Biến theo dõi double-tap cho mobile
+        let lastTapTime = 0;
+        const DOUBLE_TAP_DELAY = 300; // ms
+
+        // Hàm kiểm tra click có nằm ngoài panel không
+        function isOutsidePanel(target) {
+            const cartPanel = document.getElementById('cartPanel');
+            const orderedPanel = document.getElementById('orderedPanel');
+            const aiChatPanel = document.getElementById('aiChatPanel');
+
+            // Không đóng nếu click vào các panel hoặc các nút điều khiển
+            if (cartPanel.contains(target) ||
+                orderedPanel.contains(target) ||
+                (aiChatPanel && aiChatPanel.contains(target)) ||
+                target.closest('#cartBtn') ||
+                target.closest('#orderedBtn') ||
+                target.closest('#aiChatBtn') ||
+                target.closest('.header-controls')) {
+                return false;
+            }
+            return true;
+        }
+
+        // Hàm đóng các panel đang mở
+        function closePanelsIfOpen() {
+            const cartPanel = document.getElementById('cartPanel');
+            const orderedPanel = document.getElementById('orderedPanel');
+            let closed = false;
+
+            if (cartPanel.classList.contains('show')) {
+                cartPanel.classList.remove('show');
+                closed = true;
+            }
+            if (orderedPanel.classList.contains('show')) {
+                orderedPanel.classList.remove('show');
+                closed = true;
+            }
+            return closed;
+        }
+
+        // Double-click để đóng (Desktop)
+        document.addEventListener('dblclick', function (e) {
+            if (isOutsidePanel(e.target)) {
+                closePanelsIfOpen();
+            }
+        });
+
+        // Double-tap để đóng (Mobile/Touch)
+        document.addEventListener('touchend', function (e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+
+            if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
+                // Double-tap detected
+                if (isOutsidePanel(e.target)) {
+                    e.preventDefault(); // Ngăn zoom trên mobile
+                    closePanelsIfOpen();
+                }
+            }
+            lastTapTime = currentTime;
+        });
     </script>
 
 </body>
