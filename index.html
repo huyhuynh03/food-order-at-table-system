@@ -2478,7 +2478,7 @@
 
         // Handle quick response buttons (0 or 1)
         function handleQuickResponse(value) {
-            addUserMessage(value === 1 ? "1" : "0");
+            addUserMessage(value === 1 ? translations[currentLang].chatbot.yes : translations[currentLang].chatbot.no);
             hideQuickResponses();
 
             if (aiChatState.step === 3) {
@@ -2579,7 +2579,7 @@ IMPORTANT: Respond in ${langName} language. DO NOT explain or add any extra text
 
 Format EXACTLY like this:
 - [Item Name] x[quantity] - [price]đ [ID:X]
-TOTAL: [total price]đ`;
+${translations[currentLang].chatbot.total}: [total price]đ`;
 
             try {
                 const response = await fetch(GEMINI_API_URL, {
