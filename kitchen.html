@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Yaki Kitchen</title>
+    <style>
+        /* ======================= KEYFRAME ANIMATIONS ======================= */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+            }
+        }
+
+        @keyframes badgePulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes modalOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        @keyframes backdropIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* ======================= BASE STYLES ======================= */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #fff;
+        }
+
+        header {
+            padding: 15px 20px;
+            background: #1f1f1f;
+            border-bottom: 2px solid #ff4d4d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4d4d;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        #loginPanel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background: #252525;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 5px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #ff4d4d;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #ff4d4d;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background: #ff6666;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #dashboard {
+            display: none;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .table-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+            animation: slideUp 0.5s ease-out;
+            animation-fill-mode: both;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-card.active {
+            border: 2px solid #4ade80;
+            animation: slideUp 0.5s ease-out, pulse 2s infinite;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .table-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #333;
+            transition: all 0.3s ease;
+        }
+
+        .active .status-badge {
+            background: #4ade80;
+            color: #000;
+            animation: badgePulse 1.5s infinite;
+        }
+
+        .order-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a2a2a;
+            animation: slideInLeft 0.4s ease-out;
+            animation-fill-mode: both;
+            transition: background-color 0.2s ease;
+        }
+
+        .order-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .item-qty-input {
+            width: 40px;
+            padding: 4px;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .item-qty-input:focus {
+            border-color: #ff4d4d;
+            box-shadow: 0 0 8px rgba(255, 77, 77, 0.3);
+            outline: none;
+        }
+
+        .action-btn {
+            background: #444;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .delete-btn {
+            background: #ff4d4d;
+        }
+
+        .delete-btn:hover {
+            background: #ff6666;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+        }
+
+        .footer-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .clear-btn {
+            width: 100%;
+            background: #ff4d4d;
+        }
+
+        /* ======================= CUSTOM NOTIFICATION MODAL ======================= */
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: backdropIn 0.3s ease-out;
+        }
+
+        .notification-overlay.closing {
+            animation: fadeIn 0.2s ease-out reverse;
+        }
+
+        .notification-modal {
+            background: linear-gradient(145deg, #1e1e1e, #252525);
+            border: 1px solid #ff4d4d;
+            border-radius: 15px;
+            padding: 25px 30px;
+            min-width: 320px;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 77, 77, 0.2);
+            animation: modalIn 0.3s ease-out;
+            text-align: center;
+        }
+
+        .notification-overlay.closing .notification-modal {
+            animation: modalOut 0.2s ease-out;
+        }
+
+        .notification-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .notification-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff4d4d;
+            margin-bottom: 10px;
+        }
+
+        .notification-message {
+            font-size: 16px;
+            color: #ccc;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .notification-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .notification-btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 14px;
+        }
+
+        .notification-btn.cancel {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+
+        .notification-btn.cancel:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .notification-btn.confirm {
+            background: linear-gradient(135deg, #ff4d4d, #ff6666);
+            color: #fff;
+        }
+
+        .notification-btn.confirm:hover {
+            background: linear-gradient(135deg, #ff6666, #ff8080);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 77, 77, 0.4);
+        }
+
+        .notification-btn.ok {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: #000;
+            min-width: 120px;
+        }
+
+        .notification-btn.ok:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(74, 222, 128, 0.4);
+        }
+
+        /* Error alert style */
+        .notification-modal.error {
+            border-color: #ff4d4d;
+        }
+
+        .notification-modal.error .notification-icon {
+            animation: shake 0.5s ease;
+        }
+
+        /* ======================= LOGIN LANGUAGE SELECTOR ======================= */
+        .login-lang-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .login-lang-selector select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .login-lang-selector select:hover {
+            border-color: #ff4d4d;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+        }
+
+        .login-lang-selector select:focus {
+            outline: none;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
+        }
+    </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginPanel">
+        <!-- Language Selector for Login Screen -->
+        <div class="login-lang-selector">
+            <select id="loginLangSelect" onchange="changeLanguage(this.value)"
+                style="padding: 8px 12px; border-radius: 8px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; font-size: 14px; transition: all 0.3s ease;">
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+        </div>
+        <div class="login-box">
+            <h2 id="loginTitle">Bếp Yaki</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <button id="loginBtn" onclick="login()">Đăng nhập</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="mainApp" style="display:none;">
+        <header>
+            <div class="logo" id="headerLogo">👨‍🍳 Bếp Yaki</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <select id="langSelect" onchange="changeLanguage(this.value)"
+                    style="padding: 5px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555;">
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                </select>
+                <button id="logoutBtn" onclick="logout()">Đăng xuất</button>
+            </div>
+        </header>
+
+        <div id="dashboard">
+            <!-- Tables will be rendered here -->
+        </div>
+    </div>
+
+    <script>
+        /* ======================= FIREBASE SETUP ======================= */
+        // TODO: Thay thế bằng config thật của bạn từ Firebase Console
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCTaXqidGM4DIyJnz1-zbg_6PdxmDpV30",
+            authDomain: "food-order-at-table-to-kitchen.firebaseapp.com",
+            projectId: "food-order-at-table-to-kitchen",
+            storageBucket: "food-order-at-table-to-kitchen.firebasestorage.app",
+            messagingSenderId: "179233667372",
+            appId: "1:179233667372:web:76170af27a89ff778a9489"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        /* ======================= TRANSLATIONS ======================= */
+        const translations = {
+            vi: {
+                title: "Bếp Yaki",
+                login: {
+                    title: "Bếp Yaki",
+                    emailPlaceholder: "Email",
+                    passwordPlaceholder: "Mật khẩu",
+                    btn: "Đăng nhập",
+                    error: "Lỗi đăng nhập"
+                },
+                header: {
+                    title: "👨‍🍳 Bếp Yaki",
+                    logout: "Đăng xuất"
+                },
+                dashboard: {
+                    serving: "Đang phục vụ",
+                    noItems: "Chưa có món",
+                    qty: "SL",
+                    total: "Tổng",
+                    clearBtn: "Xóa món / Thanh toán",
+                    confirmDelete: "Xóa món này?",
+                    confirmClear: "Bạn có chắc muốn xóa hết món của bàn này?",
+                    table: "Bàn"
+                },
+                notification: {
+                    confirm: "Xác nhận",
+                    cancel: "Hủy",
+                    ok: "OK",
+                    warning: "Cảnh báo",
+                    error: "Lỗi"
+                }
+            },
+            en: {
+                title: "Yaki Kitchen",
+                login: {
+                    title: "Yaki Kitchen",
+                    emailPlaceholder: "Email",
+                    passwordPlaceholder: "Password",
+                    btn: "Login",
+                    error: "Login Error"
+                },
+                header: {
+                    title: "👨‍🍳 Yaki Kitchen",
+                    logout: "Logout"
+                },
+                dashboard: {
+                    serving: "Serving",
+                    noItems: "No items",
+                    qty: "Qty",
+                    total: "Total",
+                    clearBtn: "Clear / Pay",
+                    confirmDelete: "Delete this item?",
+                    confirmClear: "Are you sure you want to clear this table?",
+                    table: "Table"
+                },
+                notification: {
+                    confirm: "Confirm",
+                    cancel: "Cancel",
+                    ok: "OK",
+                    warning: "Warning",
+                    error: "Error"
+                }
+            }
+        };
+
+        let currentLang = localStorage.getItem('kitchenLang') || 'vi';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('kitchenLang', lang);
+            document.getElementById('langSelect').value = lang;
+            updateStaticText();
+            loadTables(); // Re-render tables with new language
+        }
+
+        function updateStaticText() {
+            const t = translations[currentLang];
+            document.title = t.title;
+
+            // Login Screen
+            document.getElementById('loginTitle').innerText = t.login.title;
+            document.getElementById('email').placeholder = t.login.emailPlaceholder;
+            document.getElementById('password').placeholder = t.login.passwordPlaceholder;
+            document.getElementById('loginBtn').innerText = t.login.btn;
+
+            // Sync both language selectors
+            const loginLangSelect = document.getElementById('loginLangSelect');
+            const dashboardLangSelect = document.getElementById('langSelect');
+            if (loginLangSelect) loginLangSelect.value = currentLang;
+            if (dashboardLangSelect) dashboardLangSelect.value = currentLang;
+
+            // Header
+            document.getElementById('headerLogo').innerText = t.header.title;
+            document.getElementById('logoutBtn').innerText = t.header.logout;
+        }
+
+        // Initialize text on load
+        updateStaticText();
+
+        // Auth Listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById("loginPanel").style.display = "none";
+                document.getElementById("mainApp").style.display = "block";
+                document.getElementById("dashboard").style.display = "grid"; // Fix display
+                // Set initial language selector value
+                document.getElementById('langSelect').value = currentLang;
+                loadTables();
+            } else {
+                document.getElementById("loginPanel").style.display = "flex";
+                document.getElementById("mainApp").style.display = "none";
+            }
+        });
+
+        function login() {
+            const email = document.getElementById("email").value;
+            const pass = document.getElementById("password").value;
+            auth.signInWithEmailAndPassword(email, pass).catch(e => {
+                showAlert(e.message, 'error');
+            });
+        }
+
+        /* ======================= CUSTOM NOTIFICATION SYSTEM ======================= */
+        function showConfirm(message, icon = '⚠️') {
+            return new Promise((resolve) => {
+                const t = translations[currentLang].notification;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'notification-overlay';
+                overlay.innerHTML = `
+                    <div class="notification-modal">
+                        <div class="notification-icon">${icon}</div>
+                        <div class="notification-title">${t.warning}</div>
+                        <div class="notification-message">${message}</div>
+                        <div class="notification-buttons">
+                            <button class="notification-btn cancel" id="notifyCancel">${t.cancel}</button>
+                            <button class="notification-btn confirm" id="notifyConfirm">${t.confirm}</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                // Focus on confirm button
+                setTimeout(() => overlay.querySelector('#notifyConfirm').focus(), 100);
+
+                const closeModal = (result) => {
+                    overlay.classList.add('closing');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve(result);
+                    }, 200);
+                };
+
+                overlay.querySelector('#notifyCancel').addEventListener('click', () => closeModal(false));
+                overlay.querySelector('#notifyConfirm').addEventListener('click', () => closeModal(true));
+
+                // Close on backdrop click
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeModal(false);
+                });
+
+                // Keyboard support
+                overlay.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') closeModal(false);
+                    if (e.key === 'Enter') closeModal(true);
+                });
+            });
+        }
+
+        function showAlert(message, type = 'info') {
+            return new Promise((resolve) => {
+                const t = translations[currentLang].notification;
+                const isError = type === 'error';
+                const icon = isError ? '❌' : 'ℹ️';
+                const title = isError ? t.error : (translations[currentLang].login?.error || t.warning);
+
+                const overlay = document.createElement('div');
+                overlay.className = 'notification-overlay';
+                overlay.innerHTML = `
+                    <div class="notification-modal ${isError ? 'error' : ''}">
+                        <div class="notification-icon">${icon}</div>
+                        <div class="notification-title">${title}</div>
+                        <div class="notification-message">${message}</div>
+                        <div class="notification-buttons">
+                            <button class="notification-btn ok" id="notifyOk">${t.ok}</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                // Focus on OK button
+                setTimeout(() => overlay.querySelector('#notifyOk').focus(), 100);
+
+                const closeModal = () => {
+                    overlay.classList.add('closing');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 200);
+                };
+
+                overlay.querySelector('#notifyOk').addEventListener('click', closeModal);
+
+                // Close on backdrop click
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeModal();
+                });
+
+                // Keyboard support
+                overlay.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' || e.key === 'Enter') closeModal();
+                });
+            });
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        function loadTables() {
+            db.collection("tables").onSnapshot(snapshot => {
+                const dashboard = document.getElementById("dashboard");
+                dashboard.innerHTML = "";
+
+                // Sắp xếp bàn theo ID (table_1, table_2...)
+                const docs = snapshot.docs.sort((a, b) => {
+                    const numA = parseInt(a.id.split('_')[1]);
+                    const numB = parseInt(b.id.split('_')[1]);
+                    return numA - numB;
+                });
+
+                const t = translations[currentLang].dashboard; // Get current translation
+
+                docs.forEach(doc => {
+                    const data = doc.data();
+                    // Không còn phân biệt active/free, chỉ kiểm tra có món hay không
+                    const hasOrders = data.orders && data.orders.length > 0;
+
+                    let ordersHtml = "";
+                    let tableTotal = 0; // Biến tính tổng tiền bàn
+
+                    if (hasOrders) {
+                        // Gộp các món giống nhau (Aggregation)
+                        const aggregatedOrders = {};
+
+                        data.orders.forEach(item => {
+                            const id = item.id;
+                            if (!aggregatedOrders[id]) {
+                                aggregatedOrders[id] = { ...item }; // Clone item
+                            } else {
+                                aggregatedOrders[id].qty = Number(aggregatedOrders[id].qty) + Number(item.qty);
+                            }
+                        });
+
+                        // Render danh sách đã gộp
+                        Object.values(aggregatedOrders).forEach(item => {
+                            // Tên món: hỗ trợ đa ngôn ngữ
+                            // Nếu item.name là object (đa ngôn ngữ) thì lấy theo currentLang, nếu không thì lấy chính nó
+                            let name = item.name;
+                            if (typeof item.name === 'object') {
+                                name = item.name[currentLang] || item.name.vi || item.name;
+                            }
+
+                            const itemTotal = item.qty * item.price;
+                            tableTotal += itemTotal;
+
+                            ordersHtml += `
+                                <div class="order-item">
+                                    <div style="flex:1">
+                                        <div style="font-weight:bold;">${name}</div>
+                                        <div style="font-size:13px; color:#ccc;">
+                                            ${t.qty}: ${item.qty} × ${item.price.toLocaleString()} đ
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display:flex; align-items:center;">
+                                        <input type="number" class="item-qty-input" value="${item.qty}"
+                                            onchange="updateOrderQty('${doc.id}', ${item.id}, this.value)"
+                                            style="margin-right: 5px;">
+                                        <button class="action-btn delete-btn" onclick="deleteOrderItem('${doc.id}', ${item.id})">X</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        ordersHtml = `<div style='color:#777; font-style:italic;'>${t.noItems}</div>`;
+                    }
+
+                    // Tự động tạo tên bàn theo ngôn ngữ: Bàn 1 / Table 1
+                    const tableNum = doc.id.split('_')[1];
+                    const tableName = `${t.table} ${tableNum}`;
+
+                    dashboard.innerHTML += `
+                        <div class="table-card ${hasOrders ? 'active' : ''}">
+                            <div class="table-header">
+                                <div class="table-name">${tableName}</div>
+                                <!-- Ẩn badge trạng thái hoặc chỉ hiện khi có món -->
+                                <div class="status-badge" style="visibility: ${hasOrders ? 'visible' : 'hidden'}">${t.serving}</div>
+                            </div>
+
+                            <div class="order-list">
+                                ${ordersHtml}
+                            </div>
+
+                            <!-- Hiển thị tổng tiền -->
+                             <div style="margin-top: 10px; border-top: 1px solid #333; padding-top: 10px; font-weight: bold; text-align: right; color: #ffa64d;">
+                                ${t.total}: ${tableTotal.toLocaleString()} đ
+                            </div>
+
+                            <div class="footer-actions">
+                                <button class="clear-btn" onclick="clearTable('${doc.id}')">
+                                    ${t.clearBtn}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        async function updateOrderQty(tableId, itemId, newQty) {
+            newQty = parseInt(newQty);
+            if (newQty < 0) return;
+
+            const ref = db.collection("tables").doc(tableId);
+            const doc = await ref.get();
+            let orders = doc.data().orders || [];
+
+            // Tìm thông tin món (để giữ lại name, price, etc. nếu cần tạo lại)
+            const itemInfo = orders.find(o => o.id == itemId);
+            if (!itemInfo) return; // Should not happen
+
+            // Xóa tất cả các entry cũ của món này (để tránh duplicate lẻ tẻ)
+            orders = orders.filter(o => o.id != itemId);
+
+            // Nếu số lượng > 0, thêm lại 1 entry gộp
+            if (newQty > 0) {
+                orders.push({
+                    ...itemInfo,
+                    qty: newQty
+                });
+            }
+
+            await ref.update({ orders: orders });
+        }
+
+        async function deleteOrderItem(tableId, itemId) {
+            const confirmed = await showConfirm(translations[currentLang].dashboard.confirmDelete, '🗑️');
+            if (!confirmed) return;
+
+            const ref = db.collection("tables").doc(tableId);
+            const doc = await ref.get();
+            let orders = doc.data().orders || [];
+
+            // Xóa tất cả entry có id này
+            orders = orders.filter(o => o.id != itemId);
+
+            await ref.update({ orders: orders });
+        }
+
+        async function clearTable(tableId) {
+            const confirmed = await showConfirm(translations[currentLang].dashboard.confirmClear, '🧹');
+            if (!confirmed) return;
+
+            // Chỉ xóa orders, không set status free nữa (hoặc giữ status active để client biết)
+            await db.collection("tables").doc(tableId).update({
+                orders: [],
+                total: 0
+                // status: "active" // Giữ nguyên active hoặc không đụng đến
+            });
+        }
+    </script>
+</body>
+
+</html>
