@@ -2,6 +2,7 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/", "destination": "/UX/index.html" },
     { "source": "/:path*", "destination": "/UX/:path*" }
   ]
 }
