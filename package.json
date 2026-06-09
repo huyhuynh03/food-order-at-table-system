@@ -9,7 +9,9 @@
     "deploy:rules": "cd UX && firebase deploy --only firestore:rules",
     "worker:dev": "cd UX/worker && npm run dev",
     "worker:deploy": "cd UX/worker && npm run deploy",
-    "worker:install": "cd UX/worker && npm install"
+    "worker:install": "cd UX/worker && npm install",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "keywords": [
     "restaurant",
@@ -27,5 +29,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.99.0"
   }
 }
