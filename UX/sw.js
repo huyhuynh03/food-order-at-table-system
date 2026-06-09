@@ -7,7 +7,7 @@
 // ⚙️ Bump CHỈ biến này mỗi lần deploy bản mới để buộc cập nhật cache.
 // Cả app-shell cache lẫn image cache đều gắn theo version này, nên đổi 1 dòng
 // là toàn bộ cache cũ sẽ tự bị xoá trong sự kiện 'activate'.
-const SW_VERSION = 'v3';
+const SW_VERSION = 'v4';
 const CACHE_NAME = `yaki-image-cache-${SW_VERSION}`;
 const APP_SHELL_CACHE = `yaki-app-shell-${SW_VERSION}`;
 

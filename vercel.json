@@ -3,6 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/", "destination": "/UX/index.html" },
-    { "source": "/:path*", "destination": "/UX/:path*" }
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/:path((?!api/).*)", "destination": "/UX/:path" }
   ]
 }

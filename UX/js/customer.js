@@ -1211,8 +1211,9 @@
             updateCart();
         })();
 
-        // Using Cloudflare Worker proxy to secure API key
-        const GEMINI_API_URL = 'https://gemini-proxy.yaki-api.workers.dev';
+        // Gọi qua serverless function cùng domain (Vercel) để giấu API key
+        // và tránh wifi công cộng chặn domain phụ như *.workers.dev.
+        const GEMINI_API_URL = '/api/gemini';
         const MAX_CHATBOT_GUESTS = 8;
 
         // Chatbot state
