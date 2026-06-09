@@ -1502,7 +1502,15 @@ ${translations[currentLang].chatbot.total}: [total price]đ`;
                     const aiResponse = data.response;
                     parseAndShowRecommendations(aiResponse);
                 } else {
-                    console.error("Worker error:", data.error);
+                    // Log đầy đủ để chẩn đoán: error + message + details + raw
+                    console.error("AI endpoint error:", {
+                        httpStatus: response.status,
+                        error: data.error,
+                        message: data.message,
+                        details: data.details,
+                        finishReason: data.finishReason,
+                        raw: data.raw
+                    });
                     addBotMessage(translations[currentLang].chatbot.error);
                     showInputArea();
                     setInputMode("numeric");

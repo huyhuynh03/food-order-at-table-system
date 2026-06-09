@@ -18,7 +18,13 @@
  */
 
 const DEFAULT_BASE_URL = 'https://danglamgiau.com/v1';
-const DEFAULT_MODEL = 'grok-code-free';
+// gpt-4o là model được tài liệu HOCAI dùng làm ví dụ -> chắc chắn tồn tại
+// và phản hồi nhanh. Có thể đổi qua AI_MODEL trên Vercel nếu cần.
+const DEFAULT_MODEL = 'gpt-4o';
+
+// Giới hạn thời gian chờ provider (ms). Phải nhỏ hơn maxDuration để ta
+// chủ động trả lỗi rõ ràng thay vì để Vercel cắt -> 500 mơ hồ.
+const PROVIDER_TIMEOUT_MS = 45000;
 
 // Cho phép function chạy tới 60s (provider có thể mất ~25s mới trả lời).
 // Mặc định gói Hobby chỉ 10s nên sẽ bị timeout -> 500.
@@ -67,35 +73,92 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Missing prompt' });
         }
 
-        const aiResponse = await fetch(`${baseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
+        const endpoint = `${baseUrl}/chat/completions`;
+
+        // AbortController để chủ động hủy request nếu provider quá chậm.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+
+        let aiResponse;
+        try {
+            aiResponse = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.7,
+                    max_tokens: 2048,
+                    // Yêu cầu provider trả JSON 1 lần, KHÔNG stream. Một số
+                    // gateway mặc định trả SSE (data: {...}) khiến JSON.parse
+                    // thất bại -> 500.
+                    stream: false
+                }),
+                signal: controller.signal
+            });
+        } catch (fetchError) {
+            // Lỗi tầng mạng hoặc timeout: không resolve được DNS, host từ chối
+            // kết nối, hoặc provider trả lời quá chậm bị abort. Đây là trường
+            // hợp dễ xảy ra nhất nếu AI_BASE_URL/AI_MODEL sai hoặc provider
+            // không truy cập được từ Vercel.
+            const isTimeout = fetchError.name === 'AbortError';
+            console.error('Cannot reach AI provider:', endpoint, fetchError);
+            return res.status(isTimeout ? 504 : 502).json({
+                error: isTimeout ? 'AI provider timeout' : 'Cannot reach AI provider',
+                endpoint: endpoint,
                 model: model,
-                messages: [{ role: 'user', content: prompt }],
-                temperature: 0.7,
-                max_tokens: 4096
-            })
-        });
+                message: fetchError.message
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
+
+        // Luôn đọc body dạng text trước rồi mới parse, tránh để
+        // aiResponse.json() ném lỗi khi provider trả body rỗng / không phải
+        // JSON (lúc đó handler rơi vào catch và trả 500 mơ hồ).
+        const rawText = await aiResponse.text();
 
         if (!aiResponse.ok) {
-            const errorText = await aiResponse.text();
-            console.error('AI provider error:', errorText);
+            console.error('AI provider error:', aiResponse.status, rawText);
             return res.status(aiResponse.status).json({
                 error: 'AI provider error',
                 status: aiResponse.status,
-                details: errorText
+                details: rawText
             });
         }
 
-        const data = await aiResponse.json();
+        let data = null;
+        try {
+            data = rawText ? JSON.parse(rawText) : null;
+        } catch (parseError) {
+            // Provider trả SSE (text/event-stream) dù đã xin stream:false.
+            // Thử gom các dòng "data: {...}" thành nội dung hoàn chỉnh.
+            const sseText = parseSSE(rawText);
+            if (sseText) {
+                return res.status(200).json({
+                    success: true,
+                    response: sseText,
+                    transport: 'sse'
+                });
+            }
+            console.error('AI response not JSON:', rawText);
+            // Không throw nữa: trả nguyên văn để client/dev còn thấy provider
+            // thực sự gửi gì về (có thể là HTML lỗi, hoặc rỗng).
+            return res.status(200).json({
+                success: false,
+                response: '',
+                error: 'AI response not JSON',
+                raw: rawText.slice(0, 2000)
+            });
+        }
 
         // Chuẩn OpenAI: choices[0].message.content
         let responseText = '';
-        const message = data.choices?.[0]?.message;
+        const choice = data?.choices?.[0];
+        const message = choice?.message;
         if (typeof message?.content === 'string') {
             responseText = message.content;
         } else if (Array.isArray(message?.content)) {
@@ -103,9 +166,9 @@ export default async function handler(req, res) {
             responseText = message.content
                 .map((part) => (typeof part === 'string' ? part : part?.text || ''))
                 .join('');
-        } else if (typeof data.choices?.[0]?.text === 'string') {
+        } else if (typeof choice?.text === 'string') {
             // Fallback cho endpoint kiểu completions cũ
-            responseText = data.choices[0].text;
+            responseText = choice.text;
         }
 
         // Model dạng reasoning (vd grok-code-free) đôi khi trả lời rỗng ở
@@ -117,10 +180,78 @@ export default async function handler(req, res) {
                 responseText = reasoning;
             }
         }
+        
+        /**
+         * Gom một chuỗi SSE (Server-Sent Events) kiểu OpenAI streaming thành text
+         * hoàn chỉnh.
+         *
+         * Mỗi chunk có dạng:  data: {"choices":[{"delta":{"content":"..."}}]}
+         * Dòng kết thúc:      data: [DONE]
+         *
+         * Hàm sẽ duyệt từng dòng, bỏ qua "[DONE]" và các dòng không parse được,
+         * rồi nối nội dung từ delta.content (streaming) hoặc message.content
+         * (trường hợp gateway gói cả message trong một chunk).
+         *
+         * @param {string} rawText  Body thô do provider trả về.
+         * @returns {string}        Nội dung đã ghép; chuỗi rỗng nếu không lấy được gì.
+         */
+        function parseSSE(rawText) {
+            if (!rawText || typeof rawText !== 'string') {
+                return '';
+            }
+        
+            let out = '';
+            const lines = rawText.split(/\r?\n/);
+        
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith('data:')) {
+                    continue;
+                }
+        
+                const payload = trimmed.slice(5).trim(); // bỏ tiền tố "data:"
+                if (!payload || payload === '[DONE]') {
+                    continue;
+                }
+        
+                let chunk;
+                try {
+                    chunk = JSON.parse(payload);
+                } catch {
+                    // Chunk lỗi/không đầy đủ -> bỏ qua, tiếp tục các chunk khác.
+                    continue;
+                }
+        
+                const choice = chunk?.choices?.[0];
+                if (!choice) {
+                    continue;
+                }
+        
+                // Streaming: nội dung nằm ở delta.content.
+                const delta = choice.delta;
+                if (typeof delta?.content === 'string') {
+                    out += delta.content;
+                } else if (Array.isArray(delta?.content)) {
+                    out += delta.content
+                        .map((part) => (typeof part === 'string' ? part : part?.text || ''))
+                        .join('');
+                } else if (typeof choice.message?.content === 'string') {
+                    // Một số gateway nhồi cả message hoàn chỉnh vào một chunk SSE.
+                    out += choice.message.content;
+                } else if (typeof choice.text === 'string') {
+                    out += choice.text;
+                }
+            }
+        
+            return out;
+        }
 
         return res.status(200).json({
-            success: true,
+            success: !!responseText,
             response: responseText,
+            // Khi rỗng, đính kèm finish_reason + toàn bộ data để chẩn đoán
+            // (vd reasoning model bị cắt vì hết token -> finish_reason=length).
+            finishReason: choice?.finish_reason,
             debug: !responseText ? data : undefined
         });
     } catch (error) {
