@@ -20,6 +20,12 @@
 const DEFAULT_BASE_URL = 'https://danglamgiau.com/v1';
 const DEFAULT_MODEL = 'grok-code-free';
 
+// Cho phép function chạy tới 60s (provider có thể mất ~25s mới trả lời).
+// Mặc định gói Hobby chỉ 10s nên sẽ bị timeout -> 500.
+export const config = {
+    maxDuration: 60
+};
+
 export default async function handler(req, res) {
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -100,6 +106,16 @@ export default async function handler(req, res) {
         } else if (typeof data.choices?.[0]?.text === 'string') {
             // Fallback cho endpoint kiểu completions cũ
             responseText = data.choices[0].text;
+        }
+
+        // Model dạng reasoning (vd grok-code-free) đôi khi trả lời rỗng ở
+        // content nhưng đặt nội dung trong reasoning_content. Lấy tạm khi
+        // content trống để tránh trả về chuỗi rỗng.
+        if (!responseText) {
+            const reasoning = message?.reasoning_content || message?.reasoning;
+            if (typeof reasoning === 'string') {
+                responseText = reasoning;
+            }
         }
 
         return res.status(200).json({

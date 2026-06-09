@@ -7,7 +7,7 @@
 // ⚙️ Bump CHỈ biến này mỗi lần deploy bản mới để buộc cập nhật cache.
 // Cả app-shell cache lẫn image cache đều gắn theo version này, nên đổi 1 dòng
 // là toàn bộ cache cũ sẽ tự bị xoá trong sự kiện 'activate'.
-const SW_VERSION = 'v4';
+const SW_VERSION = 'v5';
 const CACHE_NAME = `yaki-image-cache-${SW_VERSION}`;
 const APP_SHELL_CACHE = `yaki-app-shell-${SW_VERSION}`;
 
@@ -138,9 +138,18 @@ self.addEventListener('fetch', (event) => {
                     cache.put(request, responseToCache);
                 });
                 return networkResponse;
-            }).catch(() => {
-                // Offline: dùng cache
-                return caches.match(request);
+            }).catch(async () => {
+                // Offline: dùng cache. Nếu cache cũng trống thì phải trả về
+                // một Response hợp lệ, không được trả undefined (gây lỗi
+                // "Failed to convert value to 'Response'").
+                const cached = await caches.match(request);
+                if (cached) {
+                    return cached;
+                }
+                return new Response('', {
+                    status: 503,
+                    statusText: 'Offline'
+                });
             })
         );
         return;
