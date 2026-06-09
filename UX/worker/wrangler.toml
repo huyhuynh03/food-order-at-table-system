@@ -1,0 +1,13 @@
+name = "food-order-at-table-system"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "food-order-at-table-to-kitchen"
+FIREBASE_API_KEY = "AIzaSyCCTaXqidGM4DIyJnz1-zbg_6PdxmDpV30"
+
+# Secrets (added via wrangler secret put):
+# GEMINI_API_KEY
+# CASSO_SECURE_TOKEN
+# FIREBASE_ADMIN_EMAIL
+# FIREBASE_ADMIN_PASSWORD

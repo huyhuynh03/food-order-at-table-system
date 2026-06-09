@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e94560">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Yaki Menu">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    <title>Yaki Menu - Hệ thống đặt món tại bàn</title>
+
+    <link rel="stylesheet" href="css/customer.css">
+</head>
+
+
+<body>
+
+    <!-- SESSION BLOCKED SCREEN -->
+    <div id="sessionBlockedScreen">
+        <div class="blocked-icon">🔒</div>
+        <div class="blocked-title" id="blockedTitle">Bàn chưa được mở</div>
+        <div class="blocked-message" id="blockedMessage">Vui lòng yêu cầu nhân viên mở bàn và quét mã QR để đặt món.</div>
+        <div class="blocked-restaurant">🔥 Yaki</div>
+    </div>
+
+
+    <!-- KAHOOT-STYLE ANIMATED FOOD ICONS BACKGROUND -->
+    <div class="food-icons-bg">
+        <span class="food-icon">🍕</span>
+        <span class="food-icon">🍔</span>
+        <span class="food-icon">🍜</span>
+        <span class="food-icon">🍣</span>
+        <span class="food-icon">🍩</span>
+        <span class="food-icon">🍺</span>
+        <span class="food-icon">🍱</span>
+        <span class="food-icon">🌮</span>
+        <span class="food-icon">🍦</span>
+        <span class="food-icon">☕</span>
+        <span class="food-icon">🍷</span>
+        <span class="food-icon">🥗</span>
+        <span class="food-icon">🍗</span>
+        <span class="food-icon">🧁</span>
+        <span class="food-icon">🥟</span>
+        <span class="food-icon">🍿</span>
+        <span class="food-icon">🥤</span>
+        <span class="food-icon">🍲</span>
+        <span class="food-icon">🍰</span>
+        <span class="food-icon">🥩</span>
+        <!-- Additional icons 21-35 -->
+        <span class="food-icon">🍝</span>
+        <span class="food-icon">🥘</span>
+        <span class="food-icon">🍛</span>
+        <span class="food-icon">🍤</span>
+        <span class="food-icon">🥧</span>
+        <span class="food-icon">🍪</span>
+        <span class="food-icon">🍡</span>
+        <span class="food-icon">🧇</span>
+        <span class="food-icon">🍞</span>
+        <span class="food-icon">🥐</span>
+        <span class="food-icon">🍳</span>
+        <span class="food-icon">🥓</span>
+        <span class="food-icon">🍟</span>
+        <span class="food-icon">🌯</span>
+        <span class="food-icon">🥪</span>
+    </div>
+
+    <!-- AI CHATBOT BUTTON -->
+    <button id="aiChatBtn" onclick="toggleAiChat()">
+        <span class="ai-icon">🤖</span>
+        <span id="aiChatBtnText">Trợ lý AI</span>
+    </button>
+
+    <!-- AI CHATBOT PANEL -->
+    <div id="aiChatPanel">
+        <div class="ai-chat-header">
+            <h3><span>🤖</span> <span id="aiChatTitle">Trợ lý gợi ý món</span></h3>
+            <button class="ai-chat-close" onclick="toggleAiChat()">✕</button>
+        </div>
+        <div class="ai-chat-messages" id="aiChatMessages"></div>
+        <div class="ai-quick-responses" id="aiQuickResponses" style="display: none;">
+            <button class="ai-quick-btn yes" onclick="handleQuickResponse(1)"><span id="aiYesText">Có</span></button>
+            <button class="ai-quick-btn no" onclick="handleQuickResponse(0)"><span id="aiNoText">Không</span></button>
+        </div>
+        <div class="ai-chat-input" id="aiChatInputArea">
+            <input type="text" id="aiChatInput" placeholder="Nhập tin nhắn..."
+                onkeypress="if(event.key==='Enter')sendAiMessage()">
+            <button onclick="sendAiMessage()" id="aiSendBtn">Gửi</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">🔥 Yaki</div>
+
+        <div class="header-controls">
+            <select id="langSelect">
+                <option>Tiếng Việt</option>
+                <option>English</option>
+                <option>中文</option>
+                <option>日本語</option>
+                <option>한국어</option>
+            </select>
+
+            <span id="tableDisplay"
+                style="padding: 8px 12px; border-radius: 10px; background: rgba(40, 40, 40, 0.6); color: #fff; border: 1px solid rgba(90, 90, 90, 0.5);">Bàn
+                1</span>
+
+            <button id="callStaffBtn" onclick="requestStaffCall()">
+                <span class="call-icon">📞</span>
+                <span id="callStaffBtnText">Gọi</span>
+            </button>
+
+            <button onclick="toggleCart()">🛒
+                <span id="cartBtnText">Giỏ</span>
+                (<span id="cartCount">0</span>)
+            </button>
+
+            <button id="orderedBtn" onclick="toggleOrdered()">
+                <div>🔔
+                    <span id="orderedText">Đã gọi</span>
+                    (<span id="orderedCount">0</span>)
+                </div>
+                <div id="orderedBtnTotal">0 đ</div>
+        </div>
+    </header>
+
+    <!-- TABS (dynamically loaded from Firestore) -->
+    <div class="tabs" id="tabsContainer">
+        <!-- Tabs will be loaded dynamically -->
+    </div>
+
+    <!-- MENU -->
+    <div id="menuList" class="container"></div>
+
+    <!-- CART -->
+    <div id="cartPanel">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
+            <div class="cart-clear-btn" onclick="clearCart()">🗑️</div>
+            <div class="close-cart" onclick="toggleCart()">✖</div>
+        </div>
+
+        <h2 id="cartTitle">Giỏ hàng</h2>
+        <div id="cartItems"></div>
+        <h3 style="margin-top:20px">
+            <span id="totalLabel">Tổng</span>:
+            <span id="totalPrice">0</span> đ
+        </h3>
+        <div id="orderBtn" onclick="placeOrder()">Xác nhận đặt món</div>
+    </div>
+
+    <div id="orderedPanel">
+        <div class="close-cart" onclick="toggleOrdered()">✖</div>
+
+        <h2 id="orderedTitle">Món đã gọi</h2>
+        <div id="orderedItems"></div>
+
+        <h3 style="margin-top:20px">
+            <span id="orderedTotalLabel">Tổng</span>: <span id="orderedTotal">0</span> đ
+        </h3>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+
+    <div id="customAlertOverlay">
+        <div id="customAlertBox">
+            <div id="alertMessage">Thông báo</div>
+            <div id="alertOkBtn" onclick="closeAlert()">OK</div>
+        </div>
+    </div>
+
+
+    <div id="customConfirmOverlay">
+        <div id="customConfirmBox">
+            <div id="confirmMessage">Bạn có chắc?</div>
+
+            <div class="confirm-buttons">
+                <div id="confirmCancelBtn" class="confirm-btn" onclick="closeConfirm(false)">Hủy</div>
+                <div id="confirmOkBtn" class="confirm-btn" onclick="closeConfirm(true)">Xóa</div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/customer.js"></script>
+
+</body>
+
+</html>
+

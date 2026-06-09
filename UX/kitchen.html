@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e94560">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Yaki Kitchen">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    <title>Yaki Kitchen</title>
+    <link rel="stylesheet" href="css/kitchen.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginPanel">
+        <!-- Language Selector for Login Screen -->
+        <div class="login-lang-selector">
+            <select id="loginLangSelect" onchange="changeLanguage(this.value)"
+                style="padding: 8px 12px; border-radius: 8px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; font-size: 14px; transition: all 0.3s ease;">
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+        </div>
+        <div class="login-box">
+            <h2 id="loginTitle">Bếp Yaki</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <button id="loginBtn" onclick="login()">Đăng nhập</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="mainApp" style="display:none;">
+        <header>
+            <div class="logo" id="headerLogo">👨‍🍳 Bếp Yaki</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <select id="langSelect" onchange="changeLanguage(this.value)"
+                    style="padding: 5px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555;">
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                </select>
+                <button id="logoutBtn" onclick="logout()">Đăng xuất</button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs - Kitchen only sees Orders -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" id="tabOrders">🍳 Đơn hàng bếp</button>
+        </div>
+
+        <!-- Orders Dashboard (existing) -->
+        <div id="dashboard" class="admin-panel">
+            <!-- Tables will be rendered here -->
+        </div>
+
+        <!-- Menu Management Panel -->
+        <div id="menuPanel" class="admin-panel" style="display:none;">
+            <div class="panel-header">
+                <h2 id="menuPanelTitle">📋 Quản lý thực đơn</h2>
+                <button class="add-btn" onclick="openAddProductModal()">+ Thêm món</button>
+            </div>
+            <div id="productList" class="product-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Table Management Panel -->
+        <div id="tablePanel" class="admin-panel" style="display:none;">
+            <div class="panel-header">
+                <h2 id="tablePanelTitle">🪑 Quản lý bàn</h2>
+            </div>
+            <div class="table-management">
+                <div class="table-count-box">
+                    <span id="tableCountLabel">Số bàn hiện tại:</span>
+                    <div class="table-count-row">
+                        <button type="button" class="table-count-btn minus" onclick="decrementTableCount()">−</button>
+                        <input type="number" id="tableCountInput" value="10" min="1" max="100"
+                            oninput="handleTableCountInput(this.value)" onchange="saveTableCount()"
+                            onblur="saveTableCount()"
+                            onkeydown="if(event.key==='Enter'){saveTableCount();this.blur();}">
+                        <button type="button" class="table-count-btn plus" onclick="incrementTableCount()">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Management Panel -->
+        <div id="categoryPanel" class="admin-panel" style="display:none;">
+            <div class="panel-header">
+                <h2 id="categoryPanelTitle">📂 Quản lý danh mục</h2>
+                <button class="add-btn" onclick="openAddCategoryModal()">+ Thêm danh mục</button>
+            </div>
+            <div id="categoryList" class="category-grid">
+                <!-- Categories will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Category Modal -->
+    <div id="categoryModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <h3 id="categoryModalTitle">Thêm danh mục mới</h3>
+            <form id="categoryForm">
+                <input type="hidden" id="editCategoryId">
+
+                <div class="form-group">
+                    <label id="labelCategoryKey">Mã danh mục (không dấu, VD: mon_chay) *</label>
+                    <input type="text" id="categoryKey" required placeholder="VD: mon_chay" pattern="[a-z_]+"
+                        title="Chỉ chữ thường và dấu gạch dưới">
+                </div>
+
+                <div class="form-group">
+                    <label id="labelCategoryNameVi">Tên danh mục (Tiếng Việt) *</label>
+                    <input type="text" id="categoryNameVi" required placeholder="VD: Món chay">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeCategoryModal()">Hủy</button>
+                    <button type="submit" class="btn-save" id="saveCategoryBtn">💾 Lưu & Dịch tự động</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="productModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">Thêm món mới</h3>
+            <form id="productForm">
+                <input type="hidden" id="editProductId">
+
+                <div class="form-group">
+                    <label id="labelNameVi">Tên món (Tiếng Việt) *</label>
+                    <input type="text" id="productNameVi" required placeholder="VD: Sườn bò nướng">
+                </div>
+
+                <div class="form-group">
+                    <label id="labelCategory">Danh mục *</label>
+                    <select id="productCategory" required>
+                        <option value="nuong">Món nướng</option>
+                        <option value="lau">Lẩu</option>
+                        <option value="mon_phu">Món phụ</option>
+                        <option value="nuoc">Đồ uống</option>
+                        <option value="khai_vi">Khai vị</option>
+                        <option value="trang_mieng">Tráng miệng</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label id="labelPrice">Giá (VND) *</label>
+                    <input type="number" id="productPrice" required min="0" placeholder="VD: 150000">
+                </div>
+
+                <div class="form-group">
+                    <label id="labelImage">URL Ảnh</label>
+                    <input type="text" id="productImage" placeholder="https://...">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="productAvailable" checked>
+                        <span id="labelAvailable">Còn hàng</span>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeProductModal()">Hủy</button>
+                    <button type="submit" class="btn-save" id="saveProductBtn">💾 Lưu & Dịch tự động</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/kitchen.js"></script>
+</body>
+
+</html>

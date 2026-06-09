@@ -1,0 +1,21 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore Wrangler files
+.wrangler/
+.dev.vars
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

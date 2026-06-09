@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Yaki Menu</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at 20% 30%, #1b1b1b, #0c0c0c 70%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1.5px solid rgba(255, 77, 77, 0.4);
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff4d4d, #ff914d);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .header-controls { display: flex; gap: 10px; }
+
+        select, button {
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(40,40,40,0.6);
+            color: #fff;
+            border: 1px solid rgba(90,90,90,0.5);
+        }
+
+        @media (max-width: 600px) {
+            header { flex-direction: column; gap: 10px; }
+            .header-controls { flex-wrap: wrap; justify-content: center; }
+        }
+
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 22px;
+            padding: 12px 20px;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            padding: 12px 22px;
+            color: #ccc;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .tab.active {
+            color: #ff7b7b;
+            border-bottom: 2px solid #ff7b7b;
+        }
+
+        .container {
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 26px;
+        }
+
+        @media (max-width: 1100px) { .container { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 800px) { .container { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 550px) { .container { grid-template-columns: repeat(1, 1fr); } }
+
+        .card {
+            position: relative;
+            background: rgba(255,255,255,0.08);
+            border-radius: 18px;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .added-highlight {
+            outline: 3px solid #3cff6a;
+            box-shadow: 0 0 15px #3cff6a80;
+        }
+
+        .tick-mark {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #3cff6a;
+            color: black;
+            padding: 6px 8px;
+            border-radius: 50%;
+            font-weight: bold;
+            display: none;
+        }
+        .tick-mark.show { display: block; }
+
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .card-body { padding: 16px; }
+
+        .price {
+            color: #ffb36b;
+            font-size: 17px;
+            margin-top: 6px;
+        }
+
+        .qty-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .qty-btn {
+            width: 34px; height: 34px;
+            background: rgba(80,80,80,0.5);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        input.qty-input {
+            width: 45px;
+            padding: 6px;
+            margin: 0 8px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #777;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .add-cart-btn {
+            margin-left: auto;
+            background: linear-gradient(45deg, #ff4d4d, #ffa04d);
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #cartPanel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 360px;
+            max-width: 100%;
+            height: 100vh;
+            background: rgba(25,25,25,0.7);
+            backdrop-filter: blur(30px);
+            padding: 22px;
+            border-left: 2px solid rgba(255,120,120,0.5);
+            overflow-y: auto;
+            z-index: 999;
+            transform: translateX(100%);
+            transition: transform 0.35s ease;
+        }
+
+        #cartPanel.show { transform: translateX(0); }
+
+        .close-cart {
+            font-size: 28px;
+            color: #ff8080;
+            cursor: pointer;
+            text-align: right;
+        }
+
+        .clear-cart {
+            position:absolute;
+            top:18px;
+            right:60px;
+            font-size:22px;
+            cursor:pointer;
+            color:#ff0000; /* ĐỎ ĐẬM KHÁC HẲN */
+        }
+
+        .cart-item {
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+
+        input.cart-qty-input {
+            width: 50px;
+            padding: 6px;
+            margin-right: 10px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #aaa;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        .trash-btn {
+            color:#ff4444;
+            cursor:pointer;
+            margin-left:10px;
+        }
+
+        #orderBtn {
+            width: 100%;
+            margin-top: 18px;
+            padding: 13px;
+            background: linear-gradient(45deg, #ff4d4d, #ff9f4d);
+            border-radius: 12px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        @keyframes shake {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">🔥 Yaki</div>
+
+    <div class="header-controls">
+        <select id="langSelect">
+            <option>Tiếng Việt</option>
+            <option>English</option>
+            <option>中文</option>
+            <option>日本語</option>
+            <option>한국어</option>
+        </select>
+
+        <select id="tableSelect">
+            <option>Bàn 1</option><option>Bàn 2</option><option>Bàn 3</option><option>Bàn 4</option>
+        </select>
+
+        <button onclick="toggleCart()">🛒
+            <span id="cartBtnText">Giỏ</span>
+            (<span id="cartCount">0</span>)
+        </button>
+    </div>
+</header>
+
+<div class="tabs">
+    <div class="tab active" onclick="changeTab('nuong', event)">Món Nướng</div>
+    <div class="tab" onclick="changeTab('lau', event)">Lẩu</div>
+    <div class="tab" onclick="changeTab('mon_phu', event)">Món Phụ</div>
+    <div class="tab" onclick="changeTab('nuoc', event)">Đồ Uống</div>
+</div>
+
+<div id="menuList" class="container"></div>
+
+<div id="cartPanel">
+    <div class="close-cart" onclick="toggleCart()">✖</div>
+    <div class="clear-cart" onclick="clearCart()">🗑</div>
+    <h2 id="cartTitle">Giỏ hàng</h2>
+
+    <div id="cartItems"></div>
+
+    <h3 style="margin-top:20px">
+        <span id="totalLabel">Tổng</span>:
+        <span id="totalPrice">0</span> đ
+    </h3>
+
+    <div id="orderBtn" onclick="placeOrder()">Gửi Order</div>
+</div>
+
+<script>
+
+    const translations = {
+        vi:{ tabs:{nuong:"Món Nướng",lau:"Lẩu",mon_phu:"Món Phụ",nuoc:"Đồ Uống"},
+            buttons:{add:"Thêm", order:"Gửi Order", cart:"Giỏ"},
+            messages:{orderSent:"Order đã gửi tới bếp!"},
+            cart:{title:"Giỏ hàng", total:"Tổng", qty:"SL"},
+            table:"Bàn" },
+        en:{ tabs:{nuong:"Grilled",lau:"Hotpot",mon_phu:"Side Dishes",nuoc:"Drinks"},
+            buttons:{add:"Add", order:"Place Order", cart:"Cart"},
+            messages:{orderSent:"Order sent to kitchen!"},
+            cart:{title:"Cart", total:"Total", qty:"Qty"},
+            table:"Table" }
+    };
+
+    const products = {
+        nuong:[
+            {id:1,name:{vi:"Ba chỉ bò Mỹ",en:"US Beef Belly"},price:139000,img:"https://www.sieuthithitbo.net/uploads/files/2024/07/13/cach-che-bien-ba-chi-bo-my-01.jpg"},
+            {id:2,name:{vi:"Dẻ sườn bò",en:"Beef Ribs"},price:169000,img:"https://cdn.tgdd.vn/Files/2022/04/07/1424584/cach-lam-de-suon-bo-nuong-bang-noi-chien-khong-dau-thit-mem-va-tham-vi-202204080751285808.jpg"},
+            {id:3,name:{vi:"Sườn heo sốt mật ong",en:"Honey Pork Ribs"},price:129000,img:"https://www.lorca.vn/wp-content/uploads/2021/05/cach-lam-suon-nuong-mat-ong-bang-noi-chien-khong-dau.jpg"},
+            {id:4,name:{vi:"Gà nướng",en:"Grilled Chicken"},price:89000,img:"https://cdn.tgdd.vn/Files/2021/09/11/1381794/cach-lam-ga-nuong-ot-ngu-vi-thom-ngon-cho-bua-an-gia-dinh-202201170915502121.jpg"}
+        ]
+    };
+
+    let cart = {};
+    let menuQty = {};
+    let currentTab = "nuong";
+    let currentLang = "vi";
+
+    /* ------------------ RENDER MENU ---------------------- */
+    function renderMenu(){
+        const list = document.getElementById("menuList");
+        list.innerHTML = "";
+
+        products[currentTab].forEach(item=>{
+            if(menuQty[item.id] == null) menuQty[item.id] = 0;
+
+            const added = cart[item.id] && cart[item.id].qty > 0 ? "added-highlight" : "";
+            const tickShow = cart[item.id] && cart[item.id].qty > 0 ? "show" : "";
+
+            list.innerHTML += `
+        <div class="card ${added}">
+            <div class="tick-mark ${tickShow}">✔</div>
+            <img src="${item.img}">
+            <div class="card-body">
+                <div style="font-size:18px;font-weight:bold;">${item.name[currentLang]}</div>
+                <div class="price">${item.price.toLocaleString()} đ</div>
+
+                <div class="qty-row">
+                    <div class="qty-btn" onclick="changeMenuQty(${item.id}, -1)">−</div>
+
+                    <input class="qty-input"
+                        type="number"
+                        min="0"
+                        value="${menuQty[item.id]}"
+                        oninput="setMenuQty(${item.id}, this.value)">
+
+                    <div class="qty-btn" onclick="changeMenuQty(${item.id}, 1)">+</div>
+
+                    <div class="add-cart-btn" onclick="addToCart(${item.id})">
+                        ${translations[currentLang].buttons.add}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        });
+    }
+
+    /* ---------- MENU QTY ---------- */
+    function changeMenuQty(id,val){
+        menuQty[id] = Math.max(0, (menuQty[id]||0) + val);
+
+        if(cart[id] && menuQty[id] === 0){
+            delete cart[id];
+        }
+
+        updateCart();
+        renderMenu();
+    }
+
+    function setMenuQty(id, val){
+        if(val === "" || val === null) return;
+
+        let number = parseInt(val);
+        if(isNaN(number)) return;
+
+        if(number <= 0){
+            menuQty[id] = 0;
+            delete cart[id];
+        } else {
+            menuQty[id] = number;
+        }
+
+        updateCart();
+        renderMenu();
+    }
+
+    /* ------------------ ADD TO CART ---------------------- */
+    function addToCart(id){
+        if(menuQty[id] > 0){
+            cart[id] = {
+                ...products[currentTab].find(x=>x.id===id),
+                qty: menuQty[id]
+            };
+        }
+
+        updateCart();
+        renderMenu();
+
+        const el = document.getElementById("cartCount");
+        el.style.animation = "shake 0.4s";
+        setTimeout(()=> el.style.animation = "", 400);
+    }
+
+    /* ------------------ UPDATE CART ---------------------- */
+    function updateCart(){
+        let total = 0, count = 0;
+
+        for(let id in cart){
+            if(cart[id].qty > 0){
+                total += cart[id].qty * cart[id].price;
+                count += cart[id].qty;
+            }
+        }
+
+        document.getElementById("totalPrice").innerText = total.toLocaleString();
+        document.getElementById("cartCount").innerText = count;
+
+        renderCartItems();
+    }
+
+    /* ------------------ RENDER CART ---------------------- */
+    function renderCartItems(){
+        const box = document.getElementById("cartItems");
+        box.innerHTML = "";
+
+        for(let id in cart){
+            if(cart[id].qty > 0){
+
+                box.innerHTML += `
+            <div class="cart-item">
+                <b>${cart[id].name[currentLang]}</b><br>
+
+                <input class="cart-qty-input"
+                    type="number"
+                    min="0"
+                    value="${cart[id].qty}"
+                    oninput="setCartQty(${id}, this.value)">
+
+                x ${cart[id].price.toLocaleString()} đ
+
+                <span class="trash-btn" onclick="removeItem(${id})">🗑</span>
+            </div>`;
+            }
+        }
+    }
+
+    /* ------------------ INPUT CART QTY (FIXED) ---------------------- */
+    function setCartQty(id, val){
+        if(val === "" || val === null) return;
+
+        let number = parseInt(val);
+        if(isNaN(number)) return;
+
+        if(number <= 0){
+            delete cart[id];
+            menuQty[id] = 0;
+        } else {
+            cart[id].qty = number;
+            menuQty[id] = number;
+        }
+
+        updateCart();
+        renderMenu();
+    }
+
+    /* ------------------ REMOVE ONE ITEM ---------------------- */
+    function removeItem(id){
+        delete cart[id];
+        menuQty[id] = 0;
+        updateCart();
+        renderMenu();
+    }
+
+    /* ------------------ CLEAR CART ALL ---------------------- */
+    function clearCart(){
+        cart = {};
+        menuQty = {};
+        updateCart();
+        renderMenu();
+    }
+
+    /* ------------------ CART TOGGLE ---------------------- */
+    function toggleCart(){
+        document.getElementById("cartPanel").classList.toggle("show");
+    }
+
+    /* ------------------ ORDER ---------------------- */
+    function placeOrder(){
+        alert(translations[currentLang].messages.orderSent);
+    }
+
+    /* ------------------ INIT ---------------------- */
+    renderMenu();
+
+    /* ======================= DESKTOP DOUBLE CLICK CLOSE ======================= */
+    document.addEventListener("dblclick", function(e) {
+        const cart = document.getElementById("cartPanel");
+
+        if (cart.classList.contains("show")) {
+            const clickedInsideCart = cart.contains(e.target);
+
+            // Chỉ khi double-click ở ngoài khu cart
+            if (!clickedInsideCart) {
+                toggleCart();
+            }
+        }
+    });
+
+
+</script>
+
+</body>
+</html>

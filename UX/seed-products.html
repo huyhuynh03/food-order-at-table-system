@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Seed Products to Firebase</title>
+    <link rel="stylesheet" href="css/seed-products.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Seed Products to Firebase</h1>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalCount">33</div>
+                <div class="stat-label">Total Products</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="doneCount">0</div>
+                <div class="stat-label">Seeded</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <button id="seedBtn" onclick="seedProducts()">🌱 Seed All Products</button>
+
+        <div id="log"></div>
+    </div>
+
+    <script src="js/seed-products.js"></script>
+</body>
+
+</html>

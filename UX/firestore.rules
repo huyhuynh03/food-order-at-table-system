@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Tables: customers can read and update for ordering, but only authenticated users can delete
+    match /tables/{tableId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    // Products: public read, temporarily open write for seeding/testing
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true; // Later tighten to: request.auth != null
+    }
+
+    // Settings: same temporary write access as products
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if true; // Later tighten to: request.auth != null
+    }
+
+    // Payments: temporarily open for testing
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow write: if true; // Later tighten to: request.auth != null
+    }
+  }
+}

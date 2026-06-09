@@ -1,0 +1,31 @@
+{
+  "name": "order-food-at-table",
+  "version": "1.0.0",
+  "description": "Yaki - A QR-based restaurant ordering system. Customers scan a table QR code to browse the menu, order, call staff and pay; cashier, kitchen and manager dashboards run in real time on Firebase. Includes a multilingual Gemini AI chatbot and VietQR/Casso payment integration.",
+  "private": true,
+  "scripts": {
+    "start": "npx serve UX",
+    "dev": "npx serve UX",
+    "deploy:rules": "cd UX && firebase deploy --only firestore:rules",
+    "worker:dev": "cd UX/worker && npm run dev",
+    "worker:deploy": "cd UX/worker && npm run deploy",
+    "worker:install": "cd UX/worker && npm install"
+  },
+  "keywords": [
+    "restaurant",
+    "qr-ordering",
+    "pwa",
+    "firebase",
+    "firestore",
+    "cloudflare-workers",
+    "gemini",
+    "vietqr",
+    "casso",
+    "vanilla-js"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
