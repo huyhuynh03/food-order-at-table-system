@@ -245,9 +245,3 @@ const SW_VERSION = 'v3'; // ← bump this on each release
 - [`UX/README_VI.md`](UX/README_VI.md) — Vietnamese project overview
 - [`UX/technical_report.md`](UX/technical_report.md) — technical report
 - [`UX/archive/README.md`](UX/archive/README.md) — notes on legacy/unused code
-
----
-
-## 📄 License
-
-Released under the **MIT License**. See [`UX/LICENSE.md`](UX/LICENSE.md) (English) and [`UX/LICENSE_VI.md`](UX/LICENSE_VI.md) (Vietnamese).
